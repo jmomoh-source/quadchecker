@@ -4,82 +4,82 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"sort"
 	"strings"
 )
 
-func readAll() string {
-	r := bufio.NewReader(os.Stdin)
-	s, _ := r.ReadString(0)
-	return s
-}
-
-func dims(s string) (int, int) {
-	s = strings.TrimRight(s, "\n")
-	lines := strings.Split(s, "\n")
-	return len(lines[0]), len(lines)
-}
-
-func quadA(w, h int) string { return quad(w, h, 'o', 'o', 'o', 'o', '-', '|') }
-func quadB(w, h int) string { return quad(w, h, '/', '\\', '\\', '/', '*', '*') }
-func quadC(w, h int) string { return quad(w, h, 'A', 'A', 'C', 'C', 'B', 'B') }
-func quadD(w, h int) string { return quad(w, h, 'A', 'C', 'A', 'C', 'B', 'B') }
-func quadE(w, h int) string { return quad(w, h, 'A', 'C', 'C', 'A', 'B', 'B') }
-
-func quad(w, h int, tl, tr, bl, br, hE, vE rune) string {
-	if w <= 0 || h <= 0 {
-		return ""
-	}
-
-	var b strings.Builder
-
-	for y := 0; y < h; y++ {
-		for x := 0; x < w; x++ {
-			switch {
-			case y == 0 && x == 0:
-				b.WriteRune(tl)
-			case y == 0 && x == w-1:
-				b.WriteRune(tr)
-			case y == h-1 && x == 0:
-				b.WriteRune(bl)
-			case y == h-1 && x == w-1:
-				b.WriteRune(br)
-			case y == 0 || y == h-1:
-				b.WriteRune(hE)
-			case x == 0 || x == w-1:
-				b.WriteRune(vE)
-			default:
-				b.WriteRune(' ')
-			}
-		}
-		b.WriteRune('\n')
-	}
-
-	return b.String()
-}
-
 func main() {
-	in := readAll()
-	w, h := dims(in)
+	input := read()
+	if input == "" {
+		fmt.Println("Not a quad function")
+		return
+	}
 
-	matches := []string{}
+	lines := strings.Split(strings.TrimRight(input, "\n"), "\n")
+	h := len(lines)
+	w := len(lines[0])
 
-	if in == quadA(w, h) { matches = append(matches, "quadA") }
-	if in == quadB(w, h) { matches = append(matches, "quadB") }
-	if in == quadC(w, h) { matches = append(matches, "quadC") }
-	if in == quadD(w, h) { matches = append(matches, "quadD") }
-	if in == quadE(w, h) { matches = append(matches, "quadE") }
+	quads := map[string]string{
+		"quadA": quad(w, h, 'o', 'o', 'o', 'o', '-', '|'),
+		"quadB": quad(w, h, '/', '\\', '\\', '/', '*', '*'),
+		"quadC": quad(w, h, 'A', 'A', 'C', 'C', 'B', 'B'),
+		"quadD": quad(w, h, 'A', 'C', 'A', 'C', 'B', 'B'),
+		"quadE": quad(w, h, 'A', 'C', 'C', 'A', 'B', 'B'),
+	}
+
+	var matches []string
+	for name, shape := range quads {
+		if shape == input {
+			matches = append(matches, fmt.Sprintf("[%s] [%d] [%d]", name, w, h))
+		}
+	}
 
 	if len(matches) == 0 {
 		fmt.Println("Not a quad function")
 		return
 	}
 
-	sort.Strings(matches)
+	fmt.Println(strings.Join(matches, " || "))
+}
 
-	for i := range matches {
-		matches[i] = "[" + matches[i] + "]"
+// Read all STDIN
+func read() string {
+	reader := bufio.NewReader(os.Stdin)
+	data, _ := reader.ReadString(0)
+	if len(data) == 0 {
+		b, _ := os.ReadFile("/dev/stdin")
+		return string(b)
+	}
+	return data
+}
+
+// Quad generator
+func quad(w, h int, tl, tr, bl, br, hE, vE rune) string {
+	if w <= 0 || h <= 0 {
+		return ""
 	}
 
-	fmt.Printf("%s [%d] [%d]\n", strings.Join(matches, " || "), w, h)
+	var out strings.Builder
+
+	for r := 1; r <= h; r++ {
+		for c := 1; c <= w; c++ {
+			switch {
+			case r == 1 && c == 1:
+				out.WriteRune(tl)
+			case r == 1 && c == w:
+				out.WriteRune(tr)
+			case r == h && c == 1:
+				out.WriteRune(bl)
+			case r == h && c == w:
+				out.WriteRune(br)
+			case r == 1 || r == h:
+				out.WriteRune(hE)
+			case c == 1 || c == w:
+				out.WriteRune(vE)
+			default:
+				out.WriteRune(' ')
+			}
+		}
+		out.WriteRune('\n')
+	}
+	return out.String()
 }
